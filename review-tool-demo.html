@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TTS Review Tool — Demo</title>
+<style>
+  :root{
+    --bg:#0f1115;
+    --panel:#171a20;
+    --panel-2:#1d212a;
+    --border:#2a2f3a;
+    --text:#e7e9ee;
+    --text-dim:#9aa1ad;
+    --text-faint:#6b7280;
+    --a:#f2b134;
+    --a-deep:#c88f22;
+    --b:#39c9a6;
+    --b-deep:#1f9b80;
+    --danger:#e0574f;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height:1.45;
+    min-height:100vh;
+  }
+  .wrap{
+    max-width:960px;
+    margin:0 auto;
+    padding:20px 16px 40px;
+  }
+  .layout{
+    display:flex;
+    align-items:flex-start;
+    gap:24px;
+  }
+  .main-col{
+    flex:1 1 640px;
+    max-width:640px;
+    min-width:0;
+    padding-bottom:50px;
+  }
+  .side-col{
+    flex:1 1 260px;
+    max-width:280px;
+    position:sticky;
+    top:20px;
+  }
+  @media (max-width: 860px){
+    .layout{ flex-direction:column; }
+    .main-col, .side-col{ max-width:100%; flex-basis:auto; }
+    .side-col{ position:static; }
+  }
+  .snippet-panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:16px;
+  }
+  .snippet-title{
+    font-size:13.5px;
+    font-weight:600;
+    margin-bottom:4px;
+  }
+  .snippet-hint{
+    font-size:11.5px;
+    color:var(--text-faint);
+    margin-bottom:12px;
+  }
+  .toggle-row{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    color:var(--text-dim);
+    cursor:pointer;
+    margin-bottom:12px;
+  }
+  .toggle-row input{
+    accent-color:var(--b);
+    cursor:pointer;
+  }
+  .snippet-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    max-height:64vh;
+    overflow-y:auto;
+    padding-right:2px;
+  }
+  .snippet-group-title{
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--text-faint);
+    margin:12px 0 2px;
+  }
+  .snippet-group-title:first-child{
+    margin-top:0;
+  }
+  .snippet-btn{
+    text-align:left;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    padding:10px 11px;
+    border-radius:8px;
+    font-size:12.5px;
+    line-height:1.4;
+    cursor:pointer;
+  }
+  .snippet-btn:hover{
+    border-color:var(--b);
+    color:var(--text);
+  }
+  .snippet-btn.used{
+    opacity:0.4;
+    cursor:default;
+    border-color:var(--border);
+    color:var(--text-faint);
+  }
+  .snippet-btn.used:hover{
+    border-color:var(--border);
+    color:var(--text-faint);
+  }
+  header{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .header-top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+  }
+  h1{
+    font-size:18px;
+    font-weight:600;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .counter{
+    font-size:13px;
+    color:var(--text-dim);
+    white-space:nowrap;
+  }
+  .progress-track{
+    height:5px;
+    background:var(--panel-2);
+    border-radius:99px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--a), var(--b));
+    width:0%;
+    transition:width .2s ease;
+  }
+  .restore-banner{
+    font-size:12.5px;
+    color:var(--b);
+    background:rgba(57,201,166,0.08);
+    border:1px solid rgba(57,201,166,0.25);
+    padding:7px 10px;
+    border-radius:8px;
+    display:none;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:20px;
+    margin-bottom:14px;
+  }
+  .speaker-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .speaker{
+    font-size:20px;
+    font-weight:600;
+  }
+  .row-jump{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .row-jump input{
+    width:52px;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    border-radius:6px;
+    padding:5px 6px;
+    font-size:13px;
+    text-align:center;
+  }
+  .row-jump button{
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    border-radius:6px;
+    padding:5px 9px;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .script-text{
+    font-size:13.5px;
+    color:var(--text-dim);
+    background:var(--panel-2);
+    border-radius:8px;
+    padding:10px 12px;
+    max-height:110px;
+    overflow-y:auto;
+    margin-bottom:18px;
+  }
+  .play-zone{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    padding:18px 0 20px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:18px;
+  }
+  .play-main{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    font-size:16px;
+    font-weight:600;
+    padding:14px 26px;
+    border-radius:99px;
+    cursor:pointer;
+    transition:border-color .15s ease, transform .1s ease;
+  }
+  .play-main:hover{ border-color:var(--text-dim); }
+  .play-main:active{ transform:scale(0.98); }
+  .play-main .chip-a{ color:var(--a); }
+  .play-main .chip-b{ color:var(--b); }
+  .play-single-row{ display:flex; gap:10px; }
+  .play-single{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:transparent;
+    border:1px solid var(--border);
+    padding:8px 14px;
+    border-radius:99px;
+    font-size:13.5px;
+    cursor:pointer;
+    color:var(--text-dim);
+  }
+  .play-single.a-btn{ border-color:rgba(242,177,52,0.4); color:var(--a); }
+  .play-single.b-btn{ border-color:rgba(57,201,166,0.4); color:var(--b); }
+  .play-status{
+    font-size:12.5px;
+    color:var(--text-faint);
+    min-height:16px;
+  }
+  .play-status.active{ color:var(--text); }
+  .time-display{
+    font-size:24px;
+    font-weight:700;
+    font-variant-numeric: tabular-nums;
+    color:var(--text);
+    letter-spacing:0.01em;
+  }
+  .play-extra-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-top:2px;
+  }
+  .speed-btn{
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    padding:4px 12px;
+    border-radius:99px;
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .pause-btn{
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    padding:4px 12px;
+    border-radius:99px;
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .pause-btn:hover{ border-color:var(--text-dim); color:var(--text); }
+  .autoplay-toggle{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    color:var(--text-dim);
+    cursor:pointer;
+  }
+  .autoplay-toggle input{
+    accent-color:var(--b);
+    cursor:pointer;
+  }
+  .ms-key{
+    flex:0 0 auto;
+    font-size:10px;
+    color:var(--text-faint);
+    border:1px solid var(--border);
+    border-radius:4px;
+    padding:0 5px;
+    text-transform:uppercase;
+    line-height:1.6;
+  }
+  .field-label{
+    font-size:12.5px;
+    color:var(--text-dim);
+    margin-bottom:8px;
+    display:block;
+  }
+  .cmos-block{ margin-bottom:18px; }
+  .cmos-scale{
+    display:flex;
+    gap:6px;
+  }
+  .cmos-btn{
+    flex:1;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    padding:10px 4px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    text-align:center;
+  }
+  .cmos-btn.selected{
+    background:linear-gradient(135deg, rgba(242,177,52,0.18), rgba(57,201,166,0.18));
+    border-color:var(--text-dim);
+    color:var(--text);
+  }
+  .cmos-caption{
+    display:flex;
+    justify-content:space-between;
+    font-size:10.5px;
+    color:var(--text-faint);
+    margin-top:5px;
+  }
+  .field-block{ margin-bottom:16px; }
+  .field-block:last-child{ margin-bottom:0; }
+  .field-block input[type=text]{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:11px 12px;
+    border-radius:8px;
+    font-size:14px;
+  }
+  .field-block input[type=text]:focus{
+    outline:none;
+    border-color:var(--text-dim);
+  }
+  .multiselect{ position:relative; }
+  .multiselect-trigger{
+    width:100%;
+    text-align:left;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:11px 34px 11px 12px;
+    border-radius:8px;
+    font-size:14px;
+    cursor:pointer;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    appearance:none;
+    -webkit-appearance:none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--text-dim) 50%), linear-gradient(135deg, var(--text-dim) 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+  }
+  .multiselect-trigger.placeholder{ color:var(--text-faint); }
+  .multiselect-trigger:focus{ outline:none; border-color:var(--text-dim); }
+  .multiselect-panel{
+    display:none;
+    position:absolute;
+    top:calc(100% + 6px);
+    left:0;
+    right:0;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    max-height:230px;
+    overflow-y:auto;
+    z-index:20;
+    padding:6px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.35);
+  }
+  .multiselect-panel.open{ display:block; }
+  .ms-option{
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+    padding:8px;
+    border-radius:6px;
+    font-size:13px;
+    color:var(--text);
+    cursor:pointer;
+  }
+  .ms-option:hover{ background:rgba(255,255,255,0.05); }
+  .ms-option input[type=checkbox]{
+    margin-top:2px;
+    accent-color:var(--b);
+    cursor:pointer;
+    flex:0 0 auto;
+  }
+  .required-mark{
+    color:var(--danger);
+    font-size:11px;
+    font-weight:600;
+    margin-left:4px;
+  }
+  .field-block input.invalid{
+    border-color:var(--danger);
+    box-shadow:0 0 0 1px rgba(224,87,79,0.3);
+  }
+  .nav-row{
+    display:flex;
+    gap:10px;
+  }
+  .nav-btn{
+    flex:1;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:12px;
+    border-radius:8px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .nav-btn:disabled{ opacity:0.35; cursor:default; }
+  .nav-btn.next{
+    background:linear-gradient(135deg, var(--a-deep), var(--b-deep));
+    border:none;
+    color:#0f1115;
+  }
+  .actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .action-btn{
+    flex:1;
+    min-width:150px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:11px;
+    border-radius:8px;
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .action-btn.primary{
+    background:var(--b);
+    border-color:var(--b);
+    color:#0b1210;
+  }
+  .action-btn.danger{
+    color:var(--danger);
+    border-color:rgba(224,87,79,0.3);
+    background:transparent;
+    flex:0 0 auto;
+    min-width:0;
+  }
+  .status-msg{
+    font-size:12.5px;
+    color:var(--text-dim);
+    min-height:16px;
+    margin-bottom:14px;
+  }
+  .copy-fallback{
+    display:none;
+    width:100%;
+    height:120px;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    border-radius:8px;
+    padding:10px;
+    font-size:11px;
+    font-family:ui-monospace, monospace;
+    margin-bottom:14px;
+  }
+  .hints{
+    font-size:11.5px;
+    color:var(--text-faint);
+    text-align:center;
+    line-height:1.7;
+    padding-top:6px;
+  }
+  kbd{
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:4px;
+    padding:1px 5px;
+    font-size:10.5px;
+    color:var(--text-dim);
+  }
+  .demo-note{
+    font-size:11.5px;
+    color:var(--text-faint);
+    margin:0 0 2px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="layout">
+<div class="main-col">
+  <header>
+    <div class="header-top">
+      <h1>Review Tool</h1>
+      <span class="counter" id="counter">Zeile – / –</span>
+    </div>
+    <p class="demo-note">Demo mit Platzhaltertexten, ohne echte Audiodateien oder Kundendaten — in echten Projekten ist das an client-eigene, signierte Audio-URLs angebunden.</p>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="restore-banner" id="restoreBanner">Vorheriger Fortschritt wurde geladen.</div>
+  </header>
+
+  <main class="card">
+    <div class="speaker-row">
+      <div class="speaker" id="speakerName">–</div>
+      <div class="row-jump">
+        <input type="number" id="jumpInput" min="1" />
+        <button id="jumpBtn" type="button">Los</button>
+      </div>
+    </div>
+    <div class="script-text" id="scriptText"></div>
+
+    <div class="play-zone">
+      <button class="play-main" id="playPairBtn" type="button">
+        <span class="chip-a">A</span> → <span class="chip-b">B</span> abspielen
+      </button>
+      <div class="play-single-row">
+        <button class="play-single a-btn" id="playABtn" type="button">▶ nur A</button>
+        <button class="play-single b-btn" id="playBBtn" type="button">▶ nur B</button>
+      </div>
+      <div class="play-status" id="playStatus">Bereit</div>
+      <div class="time-display" id="timeDisplay">–</div>
+      <div class="play-extra-row">
+        <button class="speed-btn" id="speedBtn" type="button">1×</button>
+        <button class="pause-btn" id="pauseBtn" type="button">⏸ Pause</button>
+        <label class="autoplay-toggle">
+          <input type="checkbox" id="autoplayToggle" checked>
+          Automatisch abspielen beim Wechsel
+        </label>
+      </div>
+    </div>
+
+    <div class="cmos-block">
+      <span class="field-label">CMOS – A im Vergleich zu B</span>
+      <div class="cmos-scale" id="cmosScale"></div>
+      <div class="cmos-caption"><span>A viel schlechter</span><span>gleich</span><span>A viel besser</span></div>
+    </div>
+
+    <div class="field-block">
+      <span class="field-label">Rating (Mehrfachauswahl möglich)</span>
+      <div class="multiselect" id="ratingMultiselect">
+        <button type="button" class="multiselect-trigger placeholder" id="ratingTrigger">– bitte wählen –</button>
+        <div class="multiselect-panel" id="ratingPanel"></div>
+      </div>
+    </div>
+
+    <div class="field-block">
+      <span class="field-label">Comment <span class="required-mark">* Pflichtfeld</span></span>
+      <input type="text" id="commentInput" placeholder="Notiz eintragen, bevor du weitermachst" />
+    </div>
+  </main>
+
+  <div class="nav-row" style="margin-bottom:16px;">
+    <button class="nav-btn" id="prevBtn" type="button">← Zurück</button>
+    <button class="nav-btn next" id="nextBtn" type="button">Weiter →</button>
+  </div>
+
+  <div class="actions">
+    <button class="action-btn primary" id="copyBtn" type="button">In Zwischenablage kopieren</button>
+    <button class="action-btn" id="downloadBtn" type="button">Als CSV herunterladen</button>
+    <button class="action-btn danger" id="resetBtn" type="button">Zurücksetzen</button>
+  </div>
+  <div class="status-msg" id="statusMsg"></div>
+  <textarea class="copy-fallback" id="copyFallback" readonly></textarea>
+
+  <div class="hints">
+    <kbd>Leertaste</kbd> A→B abspielen &nbsp; <kbd>A</kbd>/<kbd>B</kbd> einzeln &nbsp;
+    <kbd>1</kbd>–<kbd>5</kbd> CMOS (-2…+2) &nbsp; <kbd>←</kbd>/<kbd>→</kbd> Zeile &nbsp; <kbd>Enter</kbd> weiter<br>
+    <kbd>S</kbd> Tempo &nbsp; <kbd>K</kbd> Pause/Weiter &nbsp; <kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd> <kbd>T</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>I</kbd> <kbd>O</kbd> <kbd>P</kbd> <kbd>[</kbd> <kbd>]</kbd> Rating an/aus (siehe Panel)
+  </div>
+</div>
+
+<aside class="side-col">
+  <div class="snippet-panel">
+    <div class="snippet-title">Schnellbausteine</div>
+    <div class="snippet-hint">Klicken fügt den Text ins Comment-Feld ein.</div>
+    <label class="toggle-row">
+      <input type="checkbox" id="problemToggle">
+      Problem-Bausteine (A/B) anzeigen
+    </label>
+    <div class="snippet-list" id="snippetList"></div>
+  </div>
+</aside>
+</div>
+</div>
+
+<script>
+const DATA = [
+  {"speaker": "Nora", "text": "Willkommen zurück. Heute schauen wir uns an, wie sich die Ergebnisse im Vergleich zum letzten Quartal entwickelt haben.", "audioA": "", "audioB": "", "cmos": "", "reason": "", "comment": ""},
+  {"speaker": "Ben", "text": "Achte darauf, vor jedem Level kurz durchzuatmen — das hilft, konzentriert zu bleiben.", "audioA": "", "audioB": "", "cmos": "", "reason": "", "comment": ""},
+  {"speaker": "Mira", "text": "Sehr geehrte Damen und Herren, herzlich willkommen. Schön, dass Sie sich heute die Zeit für uns nehmen.", "audioA": "", "audioB": "", "cmos": "", "reason": "", "comment": ""},
+  {"speaker": "Elias", "text": "Der Turm ist rund einhundertzwanzig Meter hoch und war bei seiner Fertigstellung das höchste Bauwerk der Stadt.", "audioA": "", "audioB": "", "cmos": "", "reason": "", "comment": ""},
+  {"speaker": "Sofia", "text": "Kleine Gewohnheiten machen über die Zeit den größten Unterschied — nicht die großen, einmaligen Anstrengungen.", "audioA": "", "audioB": "", "cmos": "", "reason": "", "comment": ""},
+  {"speaker": "Jonas", "text": "Sammle zuerst die Ressourcen in deiner Nähe, bevor du dich weiter ins unbekannte Gebiet vorwagst.", "audioA": "", "audioB": "", "cmos": "", "reason": "", "comment": ""}
+];
+const STORAGE_KEY = 'cmos_review_progress_demo';
+
+let answers = DATA.map(function(d){
+  return {
+    cmos: (d.cmos !== '' && d.cmos !== undefined) ? d.cmos : null,
+    reason: d.reason ? [d.reason] : [],
+    comment: d.comment || ''
+  };
+});
+let currentIndex = 0;
+const audioCache = {};
+let saveTimer = null;
+const SPEEDS = [1, 1.25, 1.5, 1.75, 2];
+let speedIdx = 0;
+let currentSpeed = SPEEDS[0];
+let autoplayOnArrival = true;
+let activeAudio = null;
+let activeLabel = null;
+
+function resetPauseButton(){
+  const btn = el('pauseBtn');
+  if(btn){ btn.textContent = '⏸ Pause'; }
+}
+
+function tickTimeDisplay(){
+  const disp = el('timeDisplay');
+  if(!disp) return;
+  if(activeAudio){
+    const t = activeAudio.currentTime || 0;
+    const state = activeAudio.paused ? ' (pausiert)' : '';
+    disp.textContent = (activeLabel ? activeLabel + ' · ' : '') + t.toFixed(1) + 's' + state;
+  } else {
+    disp.textContent = '–';
+  }
+}
+setInterval(tickTimeDisplay, 100);
+
+function togglePause(){
+  if(!activeAudio) return;
+  if(activeAudio.paused){
+    activeAudio.play().catch(function(){});
+    setStatus('Spielt weiter …', true);
+    el('pauseBtn').textContent = '⏸ Pause';
+  } else {
+    activeAudio.pause();
+    setStatus('Pausiert', false);
+    el('pauseBtn').textContent = '▶ Weiter';
+  }
+}
+
+function applyRate(a){
+  try{ a.playbackRate = currentSpeed; }catch(e){}
+}
+
+function cycleSpeed(){
+  speedIdx = (speedIdx + 1) % SPEEDS.length;
+  currentSpeed = SPEEDS[speedIdx];
+  el('speedBtn').textContent = currentSpeed + '×';
+}
+
+function el(id){ return document.getElementById(id); }
+
+function getAudio(url){
+  if(!url) return null;
+  if(!audioCache[url]){
+    const a = new Audio();
+    a.preload = 'auto';
+    a.src = url;
+    audioCache[url] = a;
+  }
+  return audioCache[url];
+}
+
+function pruneCache(centerIdx){
+  const keep = new Set();
+  for(let i = Math.max(0, centerIdx-1); i <= Math.min(DATA.length-1, centerIdx+2); i++){
+    keep.add(DATA[i].audioA);
+    keep.add(DATA[i].audioB);
+  }
+  Object.keys(audioCache).forEach(function(url){
+    if(!keep.has(url)){
+      try{ audioCache[url].pause(); audioCache[url].src=''; }catch(e){}
+      delete audioCache[url];
+    }
+  });
+}
+
+function preload(centerIdx){
+  for(let i = Math.max(0, centerIdx-1); i <= Math.min(DATA.length-1, centerIdx+2); i++){
+    getAudio(DATA[i].audioA);
+    getAudio(DATA[i].audioB);
+  }
+  pruneCache(centerIdx);
+}
+
+function stopAll(){
+  Object.keys(audioCache).forEach(function(url){
+    try{ audioCache[url].pause(); }catch(e){}
+  });
+  activeAudio = null;
+  activeLabel = null;
+  resetPauseButton();
+}
+
+function setStatus(text, active){
+  const s = el('playStatus');
+  s.textContent = text;
+  s.className = 'play-status' + (active ? ' active' : '');
+}
+
+function playPair(){
+  const row = DATA[currentIndex];
+  stopAll();
+  const a = getAudio(row.audioA);
+  const b = getAudio(row.audioB);
+  if(!a || !b){ setStatus('Demo – keine Audiodatei hinterlegt', false); return; }
+  setStatus('Spielt A …', true);
+  try{ a.currentTime = 0; }catch(e){}
+  applyRate(a);
+  activeAudio = a;
+  activeLabel = 'A';
+  resetPauseButton();
+  a.play().catch(function(){});
+  function onAEnded(){
+    a.removeEventListener('ended', onAEnded);
+    setStatus('Spielt B …', true);
+    try{ b.currentTime = 0; }catch(e){}
+    applyRate(b);
+    activeAudio = b;
+    activeLabel = 'B';
+    resetPauseButton();
+    b.play().catch(function(){});
+    b.addEventListener('ended', onBEnded, {once:true});
+  }
+  function onBEnded(){
+    setStatus('Fertig – bewerten', false);
+    activeAudio = null;
+    activeLabel = null;
+    resetPauseButton();
+  }
+  a.addEventListener('ended', onAEnded, {once:true});
+}
+
+function playSingle(which){
+  const row = DATA[currentIndex];
+  stopAll();
+  const url = which === 'A' ? row.audioA : row.audioB;
+  const a = getAudio(url);
+  if(!a){ setStatus('Demo – keine Audiodatei hinterlegt', false); return; }
+  try{ a.currentTime = 0; }catch(e){}
+  applyRate(a);
+  activeAudio = a;
+  activeLabel = which;
+  resetPauseButton();
+  a.play().catch(function(){});
+  setStatus('Spielt ' + which + ' …', true);
+  a.addEventListener('ended', function(){
+    setStatus('Bereit', false);
+    activeAudio = null;
+    activeLabel = null;
+    resetPauseButton();
+  }, {once:true});
+}
+
+const RATING_OPTIONS = [
+  'Clearer articulation and more accurate pronunciation',
+  'Fewer word omissions，insertions，or misreadings',
+  'Higher overall speech intelligibility',
+  'More natural stress placement and emphasis',
+  'More human-like intonation flow and cadence',
+  'Better-paced pausing and speech rate',
+  'Emotion/style better matches the text context',
+  'Richer expressiveness and more consistent persona',
+  'Higher human-likeness (less robotic/synthetic)',
+  'Smoother transitions between words and phrases',
+  'Cleaner audio with less noise or digital distortion',
+  'Better consistency in volume, timbre, and stability'
+];
+
+const SNIPPET_GROUPS = [
+  {
+    title: 'Kein Problem',
+    toggleable: false,
+    items: [
+      'No issues detected; both clips sound fine.',
+      'Everything sounds good, no problems noticed.',
+      'No noticeable issues with either clip.',
+      'Both A and B are acceptable, no major differences.',
+      'Sounds fine overall, nothing to flag.',
+      'No problems found in either recording.',
+      'Quality is fine on both sides, no concerns.',
+      'Nothing unusual, both clips are acceptable.'
+    ]
+  },
+  {
+    title: 'Problem in A',
+    toggleable: true,
+    items: [
+      'A: The articulation is unclear and several words are mispronounced, making the sentence harder to follow (around Xs).',
+      'A: There are word omissions, insertions, or misreadings that change the meaning of the sentence (around Xs).',
+      'A: Overall speech intelligibility is low; parts of the sentence are difficult to understand (around Xs).',
+      'A: Stress and emphasis are placed unnaturally on the wrong syllables or words (around Xs).',
+      'A: The intonation flow and cadence sound unnatural and do not follow normal speech patterns (around Xs).',
+      'A: Pausing is poorly placed and the speech rate feels too fast or too slow (around Xs).',
+      'A: The emotional tone or speaking style does not match the context of the text (around Xs).',
+      'A: Expressiveness is flat and the persona feels inconsistent throughout the clip (around Xs).',
+      'A: The voice sounds robotic and synthetic rather than human-like (around Xs).',
+      'A: Transitions between words and phrases feel choppy or disconnected (around Xs).',
+      'A: There is background noise or digital distortion audible in the recording (around Xs).',
+      'A: Volume, timbre, or stability is inconsistent throughout the clip (around Xs).'
+    ]
+  },
+  {
+    title: 'Problem in B',
+    toggleable: true,
+    items: [
+      'B: The articulation is unclear and several words are mispronounced, making the sentence harder to follow (around Xs).',
+      'B: There are word omissions, insertions, or misreadings that change the meaning of the sentence (around Xs).',
+      'B: Overall speech intelligibility is low; parts of the sentence are difficult to understand (around Xs).',
+      'B: Stress and emphasis are placed unnaturally on the wrong syllables or words (around Xs).',
+      'B: The intonation flow and cadence sound unnatural and do not follow normal speech patterns (around Xs).',
+      'B: Pausing is poorly placed and the speech rate feels too fast or too slow (around Xs).',
+      'B: The emotional tone or speaking style does not match the context of the text (around Xs).',
+      'B: Expressiveness is flat and the persona feels inconsistent throughout the clip (around Xs).',
+      'B: The voice sounds robotic and synthetic rather than human-like (around Xs).',
+      'B: Transitions between words and phrases feel choppy or disconnected (around Xs).',
+      'B: There is background noise or digital distortion audible in the recording (around Xs).',
+      'B: Volume, timbre, or stability is inconsistent throughout the clip (around Xs).'
+    ]
+  },
+  {
+    title: 'Fazit / Tradeoff',
+    toggleable: false,
+    items: [
+      'Overall, A is better despite this.',
+      'Overall, B is better despite this.',
+      'Overall, both are comparable in quality.'
+    ]
+  }
+];
+
+let snippetRegistry = [];
+
+function buildSnippets(){
+  const list = el('snippetList');
+  list.innerHTML = '';
+  snippetRegistry = [];
+
+  const problemWrap = document.createElement('div');
+  problemWrap.id = 'problemGroupsWrap';
+  problemWrap.style.display = 'none';
+  problemWrap.style.flexDirection = 'column';
+  problemWrap.style.gap = '6px';
+
+  function renderGroup(group, container){
+    const titleEl = document.createElement('div');
+    titleEl.className = 'snippet-group-title';
+    titleEl.textContent = group.title;
+    container.appendChild(titleEl);
+    group.items.forEach(function(text){
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'snippet-btn';
+      btn.textContent = text;
+      btn.addEventListener('click', function(){ insertSnippet(text, group.items); });
+      container.appendChild(btn);
+      snippetRegistry.push({ btn: btn, items: group.items });
+    });
+  }
+
+  SNIPPET_GROUPS.forEach(function(group){
+    if(group.toggleable){
+      renderGroup(group, problemWrap);
+    } else {
+      renderGroup(group, list);
+      if(group.title === 'Kein Problem'){
+        list.appendChild(problemWrap);
+      }
+    }
+  });
+}
+
+function syncSnippetButtons(){
+  const val = answers[currentIndex].comment || '';
+  snippetRegistry.forEach(function(entry){
+    const usedInGroup = entry.items.some(function(s){ return val.indexOf(s) !== -1; });
+    entry.btn.classList.toggle('used', usedInGroup);
+  });
+}
+
+function insertSnippet(text, groupItems){
+  const input = el('commentInput');
+  const usedInGroup = groupItems.some(function(s){ return input.value.indexOf(s) !== -1; });
+  if(usedInGroup){
+    return;
+  }
+  const existing = input.value.trim();
+  const newVal = existing ? (existing + ' ' + text) : text;
+  input.value = newVal;
+  answers[currentIndex].comment = newVal;
+  input.classList.remove('invalid');
+  syncSnippetButtons();
+  scheduleSave();
+  input.focus();
+  input.setSelectionRange(newVal.length, newVal.length);
+}
+
+const RATING_KEYS = ['q','w','e','r','t','y','u','i','o','p','[',']'];
+
+function buildRatingOptions(){
+  const panel = el('ratingPanel');
+  panel.innerHTML = '';
+  RATING_OPTIONS.forEach(function(opt, idx){
+    const row = document.createElement('label');
+    row.className = 'ms-option';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = opt;
+    cb.addEventListener('change', function(){
+      toggleRating(opt, cb.checked);
+    });
+    const key = document.createElement('span');
+    key.className = 'ms-key';
+    key.textContent = RATING_KEYS[idx];
+    const span = document.createElement('span');
+    span.textContent = opt;
+    row.appendChild(cb);
+    row.appendChild(key);
+    row.appendChild(span);
+    panel.appendChild(row);
+  });
+  el('ratingTrigger').addEventListener('click', function(e){
+    e.stopPropagation();
+    panel.classList.toggle('open');
+  });
+  document.addEventListener('click', function(e){
+    if(!el('ratingMultiselect').contains(e.target)){
+      panel.classList.remove('open');
+    }
+  });
+}
+
+function toggleRating(opt, checked){
+  const arr = answers[currentIndex].reason;
+  const idx = arr.indexOf(opt);
+  if(checked && idx === -1) arr.push(opt);
+  if(!checked && idx !== -1) arr.splice(idx, 1);
+  updateRatingTrigger();
+  scheduleSave();
+}
+
+function updateRatingTrigger(){
+  const arr = answers[currentIndex].reason;
+  const trig = el('ratingTrigger');
+  if(!arr.length){
+    trig.textContent = '– bitte wählen –';
+    trig.classList.add('placeholder');
+  } else {
+    trig.textContent = arr.length === 1 ? arr[0] : (arr.length + ' ausgewählt: ' + arr.join(', '));
+    trig.classList.remove('placeholder');
+  }
+}
+
+function syncRatingPanel(){
+  const arr = answers[currentIndex].reason;
+  const boxes = el('ratingPanel').querySelectorAll('input[type=checkbox]');
+  Array.prototype.forEach.call(boxes, function(cb){
+    cb.checked = arr.indexOf(cb.value) !== -1;
+  });
+  updateRatingTrigger();
+}
+
+const CMOS_VALUES = [-2,-1,0,1,2];
+function buildCmosButtons(){
+  const wrap = el('cmosScale');
+  wrap.innerHTML = '';
+  CMOS_VALUES.forEach(function(v){
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cmos-btn';
+    btn.textContent = (v > 0 ? '+' : '') + v;
+    btn.addEventListener('click', function(){ setCmos(v); });
+    btn.dataset.value = v;
+    wrap.appendChild(btn);
+  });
+}
+
+function setCmos(v){
+  answers[currentIndex].cmos = v;
+  renderCmosSelection();
+  scheduleSave();
+  updateProgress();
+}
+
+function renderCmosSelection(){
+  const wrap = el('cmosScale');
+  Array.prototype.forEach.call(wrap.children, function(btn){
+    btn.classList.toggle('selected', Number(btn.dataset.value) === answers[currentIndex].cmos);
+  });
+}
+
+function updateProgress(){
+  const done = answers.filter(function(a){ return a.cmos !== null && a.cmos !== undefined; }).length;
+  el('counter').textContent = 'Zeile ' + (currentIndex+1) + ' / ' + DATA.length + ' · ' + done + ' bewertet';
+  el('progressFill').style.width = (done / DATA.length * 100) + '%';
+}
+
+function renderRow(){
+  const row = DATA[currentIndex];
+  el('speakerName').textContent = row.speaker;
+  el('scriptText').textContent = row.text;
+  el('jumpInput').value = currentIndex + 1;
+  el('jumpInput').max = DATA.length;
+  syncRatingPanel();
+  el('commentInput').value = answers[currentIndex].comment;
+  el('commentInput').classList.remove('invalid');
+  syncSnippetButtons();
+  renderCmosSelection();
+  updateProgress();
+  el('prevBtn').disabled = currentIndex === 0;
+  setStatus('Bereit', false);
+  preload(currentIndex);
+}
+
+function goTo(idx){
+  stopAll();
+  currentIndex = Math.max(0, Math.min(DATA.length-1, idx));
+  renderRow();
+  if(autoplayOnArrival){
+    playPair();
+  }
+}
+function canAdvance(){
+  const c = answers[currentIndex].comment;
+  if(!c || !c.trim()){
+    el('commentInput').classList.add('invalid');
+    el('commentInput').focus();
+    flashStatus('Bitte zuerst einen Comment eintragen, bevor du weitermachst.');
+    return false;
+  }
+  el('commentInput').classList.remove('invalid');
+  return true;
+}
+function goNext(){ if(!canAdvance()) return; goTo(currentIndex+1); }
+function goPrev(){ goTo(currentIndex-1); }
+
+function scheduleSave(){
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveProgress, 500);
+}
+
+async function saveProgress(){
+  try{
+    if(window.storage && window.storage.set){
+      await window.storage.set(STORAGE_KEY, JSON.stringify({length: DATA.length, answers: answers}), false);
+    }
+  }catch(e){ /* storage not available - progress stays in memory only */ }
+}
+
+async function loadProgress(){
+  try{
+    if(window.storage && window.storage.get){
+      const res = await window.storage.get(STORAGE_KEY, false);
+      if(res && res.value){
+        const parsed = JSON.parse(res.value);
+        if(parsed && Array.isArray(parsed.answers) && parsed.answers.length === DATA.length){
+          answers = parsed.answers.map(function(a){
+            return {
+              cmos: (a.cmos === undefined) ? null : a.cmos,
+              reason: Array.isArray(a.reason) ? a.reason : (a.reason ? [a.reason] : []),
+              comment: a.comment || ''
+            };
+          });
+          const done = answers.filter(function(a){ return a.cmos !== null && a.cmos !== undefined; }).length;
+          if(done > 0){
+            el('restoreBanner').style.display = 'block';
+            el('restoreBanner').textContent = 'Vorheriger Fortschritt geladen: ' + done + ' von ' + DATA.length + ' bereits bewertet.';
+          }
+        }
+      }
+    }
+  }catch(e){ /* no saved progress yet */ }
+}
+
+function csvEscape(v){
+  v = (v === null || v === undefined) ? '' : String(v);
+  if(/[",\n]/.test(v)){
+    v = '"' + v.replace(/"/g,'""') + '"';
+  }
+  return v;
+}
+
+function buildCSV(){
+  const header = ['speaker','text','Audio A','Audio B','CMOS','rating','Commets'];
+  const lines = [header.join(',')];
+  DATA.forEach(function(row, i){
+    const ans = answers[i];
+    const ratingStr = (ans.reason || []).join(',');
+    lines.push([
+      csvEscape(row.speaker),
+      csvEscape(row.text),
+      csvEscape(row.audioA),
+      csvEscape(row.audioB),
+      csvEscape(ans.cmos === null || ans.cmos === undefined ? '' : ans.cmos),
+      csvEscape(ratingStr),
+      csvEscape(ans.comment)
+    ].join(','));
+  });
+  return lines.join('\r\n');
+}
+
+function buildTSV(){
+  const clean = function(v){
+    return (v === null || v === undefined ? '' : String(v)).replace(/\t/g,' ').replace(/\r?\n/g,' ');
+  };
+  const header = ['speaker','text','Audio A','Audio B','CMOS','rating','Commets'];
+  const lines = [header.join('\t')];
+  DATA.forEach(function(row, i){
+    const ans = answers[i];
+    const ratingStr = (ans.reason || []).join(',');
+    lines.push([
+      clean(row.speaker),
+      clean(row.text),
+      clean(row.audioA),
+      clean(row.audioB),
+      clean(ans.cmos === null || ans.cmos === undefined ? '' : ans.cmos),
+      clean(ratingStr),
+      clean(ans.comment)
+    ].join('\t'));
+  });
+  return lines.join('\n');
+}
+
+function flashStatus(msg){
+  el('statusMsg').textContent = msg;
+  setTimeout(function(){ el('statusMsg').textContent = ''; }, 3500);
+}
+
+async function copyResults(){
+  const tsv = buildTSV();
+  try{
+    await navigator.clipboard.writeText(tsv);
+    flashStatus('Kopiert – jetzt in deine Tabelle in die erste Zelle einfügen.');
+    return;
+  }catch(e){}
+  try{
+    const fb = el('copyFallback');
+    fb.style.display = 'block';
+    fb.value = tsv;
+    fb.focus();
+    fb.select();
+    const ok = document.execCommand('copy');
+    if(ok){
+      flashStatus('Kopiert – jetzt in deine Tabelle einfügen.');
+      fb.style.display = 'none';
+      return;
+    }
+  }catch(e){}
+  el('copyFallback').style.display = 'block';
+  flashStatus('Automatisches Kopieren nicht möglich – Text unten manuell markieren und kopieren.');
+}
+
+function downloadCSV(){
+  const csv = buildCSV();
+  const blob = new Blob(['\ufeff' + csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'cmos_review_ergebnisse.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  flashStatus('CSV heruntergeladen.');
+}
+
+function resetProgress(){
+  if(!confirm('Wirklich den gesamten Fortschritt löschen?')) return;
+  answers = DATA.map(function(){ return {cmos:null, reason:'', comment:''}; });
+  scheduleSave();
+  renderRow();
+  flashStatus('Fortschritt zurückgesetzt.');
+}
+
+el('playPairBtn').addEventListener('click', playPair);
+el('playABtn').addEventListener('click', function(){ playSingle('A'); });
+el('playBBtn').addEventListener('click', function(){ playSingle('B'); });
+el('prevBtn').addEventListener('click', goPrev);
+el('nextBtn').addEventListener('click', goNext);
+el('jumpBtn').addEventListener('click', function(){
+  const v = parseInt(el('jumpInput').value, 10);
+  if(!isNaN(v)) goTo(v-1);
+});
+el('commentInput').addEventListener('input', function(e){
+  answers[currentIndex].comment = e.target.value;
+  if(e.target.value.trim()) e.target.classList.remove('invalid');
+  syncSnippetButtons();
+  scheduleSave();
+});
+el('copyBtn').addEventListener('click', copyResults);
+el('downloadBtn').addEventListener('click', downloadCSV);
+el('resetBtn').addEventListener('click', resetProgress);
+el('speedBtn').addEventListener('click', cycleSpeed);
+el('pauseBtn').addEventListener('click', togglePause);
+el('autoplayToggle').addEventListener('change', function(e){
+  autoplayOnArrival = e.target.checked;
+});
+el('problemToggle').addEventListener('change', function(e){
+  el('problemGroupsWrap').style.display = e.target.checked ? 'flex' : 'none';
+});
+
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    goNext();
+    return;
+  }
+  const tag = document.activeElement.tagName;
+  const isTyping = tag === 'INPUT' || tag === 'TEXTAREA';
+  if(isTyping) return;
+  if(e.code === 'Space'){
+    e.preventDefault();
+    playPair();
+  } else if(e.key === 'a' || e.key === 'A'){
+    playSingle('A');
+  } else if(e.key === 'b' || e.key === 'B'){
+    playSingle('B');
+  } else if(e.key >= '1' && e.key <= '5'){
+    const map = {'1':-2,'2':-1,'3':0,'4':1,'5':2};
+    setCmos(map[e.key]);
+  } else if(e.key === 'ArrowLeft'){
+    goPrev();
+  } else if(e.key === 'ArrowRight'){
+    goNext();
+  } else if(e.key === 's' || e.key === 'S'){
+    cycleSpeed();
+  } else if(e.key === 'k' || e.key === 'K'){
+    togglePause();
+  } else {
+    const k = e.key.toLowerCase();
+    const ratingIdx = RATING_KEYS.indexOf(k);
+    if(ratingIdx !== -1){
+      const opt = RATING_OPTIONS[ratingIdx];
+      const isChecked = answers[currentIndex].reason.indexOf(opt) !== -1;
+      toggleRating(opt, !isChecked);
+      syncRatingPanel();
+    }
+  }
+});
+
+(async function init(){
+  buildCmosButtons();
+  buildRatingOptions();
+  buildSnippets();
+  await loadProgress();
+  renderRow();
+})();
+</script>
+</body>
+</html>
